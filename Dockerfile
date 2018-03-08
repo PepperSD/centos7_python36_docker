@@ -36,8 +36,11 @@ RUN yum -y update nginx-release-centos
 RUN yum -y --enablerepo=nginx install nginx
 RUN yum -y install -y https://centos7.iuscommunity.org/ius-release.rpm
 RUN yum -y install python36u python36u-libs python36u-devel python36u-pip
-RUN pip3.6 install --upgrade setuptools
-RUN pip3.6 install ansible
-RUN pip3.6 install tox
-RUN pip3.6 install readline
-RUN pip3.6 install virtualenv
+RUN export PATH=~/.local/bin:$PATH
+RUN ln -fs /usr/bin/pip3.6 usr/local/bin/pip
+RUN alias pip="/usr/bin/pip3.6"
+RUN pip install --upgrade setuptools
+RUN pip install ansible
+RUN pip install tox
+RUN pip install readline
+RUN pip install virtualenv
