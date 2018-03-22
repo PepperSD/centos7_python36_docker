@@ -69,3 +69,5 @@ RUN pip install ansible
 RUN pip install tox
 RUN pip install readline
 RUN pip install virtualenv
+RUN systemctl enable sshd.service
+CMD ["/usr/sbin/init"]
