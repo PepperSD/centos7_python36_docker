@@ -62,8 +62,6 @@ RUN ssh-keygen -f /home/vagrant/.ssh/id_rsa -t rsa -b 2048 -N ''
 RUN cp /home/vagrant/.ssh/id_rsa.pub /home/vagrant/.ssh/authorized_keys
 RUN chmod 600 /home/vagrant/.ssh/authorized_keys
 RUN chown -R vagrant:vagrant /home/vagrant/.ssh
-RUN sed -i -e 's/Defaults.*requiretty/#&/' /etc/sudoers
-RUN sed -i -e 's/\(UsePAM \)yes/\1 no/' /etc/ssh/sshd_config
 EXPOSE 22
 RUN systemctl enable sshd.service
 CMD ["/usr/sbin/init"]
