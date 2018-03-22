@@ -64,10 +64,12 @@ RUN yum -y install python36u python36u-libs python36u-devel python36u-pip
 RUN export PATH=~/.local/bin:$PATH
 RUN ln -fs /usr/bin/pip3.6 usr/local/bin/pip
 RUN alias pip="/usr/bin/pip3.6"
+RUN pip install --upgrade pip
 RUN pip install --upgrade setuptools
 RUN pip install ansible
 RUN pip install tox
 RUN pip install readline
 RUN pip install virtualenv
+RUN rm -f /etc/service/sshd/down
 RUN systemctl enable sshd.service
 CMD ["/usr/sbin/init"]
