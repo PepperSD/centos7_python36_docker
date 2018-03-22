@@ -3,6 +3,10 @@ RUN yum -y update
 RUN yum -y groupinstall "Development Tools"
 RUN yum -y install \
            kernel-devel \
+           openssh-server \
+           openssh-clients \
+           passwd \
+           sudo \
            kernel-headers \
            gcc-c++ \
            patch \
@@ -44,3 +48,11 @@ RUN pip install ansible
 RUN pip install tox
 RUN pip install readline
 RUN pip install virtualenv
+RUN yum -y install initscripts MAKEDEV
+RUN sed -ri 's/^#PermitEmptyPasswords no/PermitEmptyPasswords yes/' /etc/ssh/sshd_config
+RUN sed -ri 's/^#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config
+RUN sed -ri 's/^UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
+RUN useradd vagrant
+RUN echo 'vagrant:' | chpasswd
+EXPOSE 22
+ENTRYPOINT ["/usr/sbin/sshd", "-D"]
