@@ -1,26 +1,43 @@
 FROM centos:centos7
+ENV container docker
+ENV PYTHON_VERSION "3.6.5"
 ENV SUDOFILE /etc/sudoers
-RUN yum -y swap -- remove fakesystemd -- install systemd systemd-libs initscripts
-RUN yum -y update; yum clean all; \
-(cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
-rm -f /lib/systemd/system/multi-user.target.wants/*;\
-rm -f /etc/systemd/system/*.wants/*;\
-rm -f /lib/systemd/system/local-fs.target.wants/*; \
-rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
-rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
-rm -f /lib/systemd/system/basic.target.wants/*;\
-rm -f /lib/systemd/system/anaconda.target.wants/*;
-RUN yum -y install openssh-server openssh-clients
+RUN yum -y install \
+           gcc \
+           libffi-dev \
+           libyaml-dev \
+           libssl-dev \
+           libpython-dev \
+           python \
+           python-devel \
+           python-virtualenv \
+           python-setuptools   \
+           python-pip \
+           aptitude \
+           passwd \
+           openssh \
+           openssh-server \
+           openssh-clients \
+           sudo \
+           wget \
+           gcc make \
+           openssl-devel \
+           sqlite-devel \
+           bzip2-devel \
+           git
+RUN yum install -y https://centos7.iuscommunity.org/ius-release.rpm
+RUN yum install -y python36u python36u-libs python36u-devel python36u-pip
+RUN pip3.6 install --upgrade pip
+RUN pip3.6 install --upgrade setuptools
+RUN pip3.6 install ansible
+RUN pip3.6 install virtualenv
+
+## setup sshd and generate ssh-keys by init script
 RUN mkdir -p /var/run/sshd
-RUN ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N ''
-RUN ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ''
-RUN ssh-keygen -f /etc/ssh/ssh_host_ecdsa_key -t ecdsa -N ''
-RUN systemctl enable sshd.service
+RUN ssh-keygen -A
 # Add vagrant user and key
-RUN yum -y install sudo
-RUN rm -f /etc/service/sshd/down
 RUN useradd -m -s /bin/bash vagrant
-RUN echo -e "vagrant\nvagrant" | (passwd --stdin vagrant)
+RUN echo -e "vagrant:vagrant" | (passwd --stdin vagrant)
 RUN echo 'vagrant ALL = NOPASSWD: ALL' > /etc/sudoers.d/vagrant
 RUN chmod 440 /etc/sudoers.d/vagrant
 RUN mkdir -p /home/vagrant/.ssh
@@ -28,64 +45,14 @@ RUN chmod 700 /home/vagrant/.ssh
 ADD https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub /home/vagrant/.ssh/authorized_keys
 RUN chmod 600 /home/vagrant/.ssh/authorized_keys
 RUN chown -R vagrant:vagrant /home/vagrant/.ssh
-RUN sed -i -e 's/Defaults.*requiretty/#&/' /etc/sudoers
-RUN echo 'PermitEmptyPasswords yes' >> /etc/ssh/sshd_config
-RUN echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config
-#add key to user root
-RUN echo -e "root\root" | (passwd --stdin root)
-RUN echo 'root ALL = NOPASSWD: ALL' > /etc/sudoers.d/root
-RUN chmod 440 /etc/sudoers.d/root
-RUN mkdir -p /root/.ssh
-RUN chmod 700 /root/.ssh
-ADD https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub /root/.ssh/authorized_keys
-RUN chmod 600 /root/.ssh/authorized_keys
-RUN chown -R root:root /root/.ssh
-# Enable password-less sudo for all user (including the 'vagrant' user)
 # Enable password-less sudo for all user (including the 'vagrant' user)
 RUN chmod u+w ${SUDOFILE}
 RUN echo '%sudo   ALL=(ALL:ALL) NOPASSWD: ALL' >> ${SUDOFILE}
 RUN chmod u-w ${SUDOFILE}
-RUN yum -y groupinstall "Development Tools"
-RUN yum -y install \
-           kernel-devel \
-           passwd \
-           sudo \
-           kernel-headers \
-           gcc-c++ \
-           patch \
-           libyaml-devel \
-           libffi-devel \
-           autoconf \
-           automake \
-           make \
-           libtool \
-           bison \
-           tk-devel \
-           zip \
-           wget \
-           tar \
-           gcc \
-           zlib \
-           zlib-devel \
-           bzip2 \
-           bzip2-devel \
-           readline \
-           readline-devel \
-           sqlite \
-           sqlite-devel \
-           openssl \
-           openssl-devel \
-           git \
-           gdbm-devel \
-           python-devel
-RUN yum -y install -y https://centos7.iuscommunity.org/ius-release.rpm
-RUN yum -y install python36u python36u-libs python36u-devel python36u-pip
-RUN export PATH=~/.local/bin:$PATH
-RUN ln -fs /usr/bin/pip3.6 usr/local/bin/pip
-RUN alias pip="/usr/bin/pip3.6"
-RUN pip install --upgrade pip
-RUN pip install --upgrade setuptools
-RUN pip install ansible
-RUN pip install readline
-RUN pip install virtualenv
+VOLUME [ "/sys/fs/cgroup" ]
+# LANG
+RUN localedef -f UTF-8 -i ja_JP ja_JP.utf8
+ADD run.sh /home/vagrant/run.sh
+RUN chmod +x /home/vagrant/run.sh
+RUN /home/vagrant/run.sh
 ENTRYPOINT ["/usr/sbin/sshd", "-D"]
