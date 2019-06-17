@@ -42,6 +42,8 @@ RUN pip3.6 install --upgrade pip
 RUN pip3.6 install --upgrade setuptools
 RUN pip3.6 install ansible
 RUN pip3.6 install virtualenv
+RUN pip3.6 install circus
+RUN pip3.6 install tox
 
 ## setup sshd and generate ssh-keys by init script
 RUN mkdir -p /var/run/sshd
