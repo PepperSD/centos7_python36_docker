@@ -32,10 +32,7 @@ RUN yum -y install \
            freetds-devel
 RUN yum install -y https://centos7.iuscommunity.org/ius-release.rpm
 RUN yum install -y python36u python36u-libs python36u-devel python36u-pip
-RUN yum install -y wget openssl sed &&\
-    yum -y autoremove &&\
-    yum clean all &&\
-    wget http://nginx.org/packages/$os/$osversion/x86_64/RPMS/nginx-$nginxversion.el$elversion.ngx.x86_64.rpm &&\
+RUN wget http://nginx.org/packages/$os/$osversion/x86_64/RPMS/nginx-$nginxversion.el$elversion.ngx.x86_64.rpm &&\
     rpm -iv nginx-$nginxversion.el$elversion.ngx.x86_64.rpm
 RUN pip3.6 install --upgrade pip
 RUN pip3.6 install --upgrade setuptools
