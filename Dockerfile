@@ -2,6 +2,10 @@ FROM centos:centos7
 ENV container docker
 ENV PYTHON_VERSION "3.6.5"
 ENV SUDOFILE /etc/sudoers
+ENV nginxversion="1.16.0-1" \
+    os="centos" \
+    osversion="7" \
+    elversion="7"
 RUN yum -y install \
            gcc \
            libffi-dev \
@@ -28,10 +32,16 @@ RUN yum -y install \
            freetds-devel
 RUN yum install -y https://centos7.iuscommunity.org/ius-release.rpm
 RUN yum install -y python36u python36u-libs python36u-devel python36u-pip
+RUN yum install -y wget openssl sed &&\
+    yum -y autoremove &&\
+    yum clean all &&\
+    wget http://nginx.org/packages/$os/$osversion/x86_64/RPMS/nginx-$nginxversion.el$elversion.ngx.x86_64.rpm &&\
+    rpm -iv nginx-$nginxversion.el$elversion.ngx.x86_64.rpm
 RUN pip3.6 install --upgrade pip
 RUN pip3.6 install --upgrade setuptools
 RUN pip3.6 install ansible
 RUN pip3.6 install virtualenv
+RUN yum install
 
 ## setup sshd and generate ssh-keys by init script
 RUN mkdir -p /var/run/sshd
