@@ -7,6 +7,11 @@ ENV nginxversion="1.16.0-1" \
     osversion="7" \
     elversion="7"
 RUN yum -y install \
+           https://rpm.nodesource.com/pub_10.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm \
+           https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm \
+           https://centos7.iuscommunity.org/ius-release.rpm
+
+RUN yum -y install \
            gcc \
            libffi-dev \
            libyaml-dev \
@@ -29,50 +34,43 @@ RUN yum -y install \
            sqlite-devel \
            bzip2-devel \
            git \
-           freetds-devel
-RUN yum install -y https://centos7.iuscommunity.org/ius-release.rpm
-RUN yum install -y python36u python36u-libs python36u-devel python36u-pip
-RUN pip3.6 install --upgrade pip
-RUN pip3.6 install --upgrade setuptools
-RUN pip3.6 install ansible
-RUN pip3.6 install virtualenv
-RUN pip3.6 install circus
-RUN pip3.6 install tox
+           freetds-devel \
+           nodejs-10.16.0 \
+           postgresql10 \
+           postgresql10-server \
+           openssl \
+           sed &&\
+           wget http://nginx.org/packages/$os/$osversion/x86_64/RPMS/nginx-$nginxversion.el$elversion.ngx.x86_64.rpm &&\
+           rpm -iv nginx-$nginxversion.el$elversion.ngx.x86_64.rpm &&\
+           rm nginx-$nginxversion.el$elversion.ngx.x86_64.rpm
 
-#install nginx
-RUN yum install -y wget openssl sed &&\
-    yum -y autoremove &&\
-    wget http://nginx.org/packages/$os/$osversion/x86_64/RPMS/nginx-$nginxversion.el$elversion.ngx.x86_64.rpm &&\
-    rpm -iv nginx-$nginxversion.el$elversion.ngx.x86_64.rpm
-RUN rm nginx-$nginxversion.el$elversion.ngx.x86_64.rpm
-
-#Install nodejs
-RUN     yum install -y https://rpm.nodesource.com/pub_10.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm
-RUN     yum install -y nodejs-10.16.0
-#clear
-RUN yum clean all
+#Install python3.6
+RUN yum -y install \
+           python36u \
+           python36u-libs \
+           python36u-devel \
+           python36u-pip
+RUN pip3.6 install --upgrade pip setuptools ansible virtualenv circus tox
 
 ## setup sshd and generate ssh-keys by init script
-RUN mkdir -p /var/run/sshd
-RUN ssh-keygen -A
-# Add vagrant user and key
-RUN useradd -m -s /bin/bash vagrant
-RUN echo -e "vagrant:vagrant" | (passwd --stdin vagrant)
-RUN echo 'vagrant ALL = NOPASSWD: ALL' > /etc/sudoers.d/vagrant
-RUN chmod 440 /etc/sudoers.d/vagrant
-RUN mkdir -p /home/vagrant/.ssh
-RUN chmod 700 /home/vagrant/.ssh
+RUN mkdir -p /var/run/sshd &&\
+    ssh-keygen -A &&\
+    useradd -m -s /bin/bash vagrant &&\
+    echo -e "vagrant:vagrant" | (passwd --stdin vagrant) &&\
+    echo 'vagrant ALL = NOPASSWD: ALL' > /etc/sudoers.d/vagrant &&\
+    chmod 440 /etc/sudoers.d/vagrant &&\
+    mkdir -p /home/vagrant/.ssh &&\
+    chmod 700 /home/vagrant/.ssh
+
 ADD https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub /home/vagrant/.ssh/authorized_keys
-RUN chmod 600 /home/vagrant/.ssh/authorized_keys
-RUN chown -R vagrant:vagrant /home/vagrant/.ssh
-# Enable password-less sudo for all user (including the 'vagrant' user)
-RUN chmod u+w ${SUDOFILE}
-RUN echo '%sudo   ALL=(ALL:ALL) NOPASSWD: ALL' >> ${SUDOFILE}
-RUN chmod u-w ${SUDOFILE}
-VOLUME [ "/sys/fs/cgroup" ]
-# LANG
-RUN localedef -f UTF-8 -i ja_JP ja_JP.utf8
 ADD run.sh /home/vagrant/run.sh
-RUN chmod +x /home/vagrant/run.sh
-RUN /home/vagrant/run.sh
+RUN chmod 600 /home/vagrant/.ssh/authorized_keys &&\
+    chown -R vagrant:vagrant /home/vagrant/.ssh &&\
+    chmod u+w ${SUDOFILE} &&\
+    echo '%sudo   ALL=(ALL:ALL) NOPASSWD: ALL' >> ${SUDOFILE} &&\
+    chmod u-w ${SUDOFILE} &&\
+    localedef -f UTF-8 -i ja_JP ja_JP.utf8 &&\
+    chmod +x /home/vagrant/run.sh &&\
+    /home/vagrant/run.sh
+VOLUME [ "/sys/fs/cgroup" ]
 ENTRYPOINT ["/usr/sbin/sshd", "-D"]
