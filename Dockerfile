@@ -13,6 +13,7 @@ RUN yum -y install \
 
 RUN yum -y install \
            gcc \
+           rsyslog \
            libffi-dev \
            libyaml-dev \
            libssl-dev \
