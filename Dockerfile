@@ -53,7 +53,13 @@ RUN yum -y install \
            python36u-libs \
            python36u-devel \
            python36u-pip
-RUN pip3.6 install --upgrade pip setuptools ansible virtualenv circus tox
+RUN pip3.6 install --upgrade pip setuptools ansible virtualenv circus tox &&\
+    td-agent-gem install \
+                 fluent-plugin-dstat \
+                 fluent-plugin-elasticsearch \
+                 fluent-plugin-filter_typecast \
+                 fluent-plugin-filter-object-flatten \
+                 fluent-plugin-grep
 
 ## setup sshd and generate ssh-keys by init script
 RUN mkdir -p /var/run/sshd &&\
