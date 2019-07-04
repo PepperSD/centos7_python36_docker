@@ -40,10 +40,12 @@ RUN yum -y install \
            postgresql10 \
            postgresql10-server \
            openssl \
+           dstat \
            sed &&\
            wget http://nginx.org/packages/$os/$osversion/x86_64/RPMS/nginx-$nginxversion.el$elversion.ngx.x86_64.rpm &&\
            rpm -iv nginx-$nginxversion.el$elversion.ngx.x86_64.rpm &&\
-           rm nginx-$nginxversion.el$elversion.ngx.x86_64.rpm
+           curl -L https://toolbelt.treasuredata.com/sh/install-redhat-td-agent3.sh | sh &&\
+           rm -f nginx-$nginxversion.el$elversion.ngx.x86_64.rpm
 
 #Install python3.6
 RUN yum -y install \
