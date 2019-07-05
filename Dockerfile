@@ -6,21 +6,15 @@ ENV nginxversion="1.16.0-1" \
     os="centos" \
     osversion="7" \
     elversion="7"
-RUN yum -y install \
+
+RUN yum update -y &&\
+    yum -y install \
            https://rpm.nodesource.com/pub_10.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm \
            https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm \
-           https://centos7.iuscommunity.org/ius-release.rpm &&\
-           (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
-           rm -f /lib/systemd/system/multi-user.target.wants/*;\
-           rm -f /etc/systemd/system/*.wants/*;\
-           rm -f /lib/systemd/system/local-fs.target.wants/*; \
-           rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
-           rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
-           rm -f /lib/systemd/system/basic.target.wants/*;\
-           rm -f /lib/systemd/system/anaconda.target.wants/*;
-
-RUN yum -y install \
+           https://centos7.iuscommunity.org/ius-release.rpm \
+           http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm \
            gcc \
+           systemd \
            rsyslog \
            libffi-dev \
            libyaml-dev \
@@ -44,23 +38,24 @@ RUN yum -y install \
            bzip2-devel \
            git \
            freetds-devel \
-           nodejs-10.16.0 \
-           postgresql10 \
-           postgresql10-server \
            openssl \
            dstat \
            sed &&\
-           wget http://nginx.org/packages/$os/$osversion/x86_64/RPMS/nginx-$nginxversion.el$elversion.ngx.x86_64.rpm &&\
-           rpm -iv nginx-$nginxversion.el$elversion.ngx.x86_64.rpm &&\
-           curl -L https://toolbelt.treasuredata.com/sh/install-redhat-td-agent3.sh | sh &&\
-           rm -f nginx-$nginxversion.el$elversion.ngx.x86_64.rpm
+           yum clean all
 
-#Install python3.6
+
 RUN yum -y install \
+           nodejs-10.16.0 \
+           nginx \
            python36u \
            python36u-libs \
            python36u-devel \
-           python36u-pip
+           python36u-pip \
+           postgresql10 \
+           postgresql10-server &&\
+           curl -L https://toolbelt.treasuredata.com/sh/install-redhat-td-agent3.sh | sh &&\
+            yum clean all
+
 RUN pip3.6 install --upgrade pip setuptools ansible virtualenv circus tox &&\
     td-agent-gem install \
                  fluent-plugin-dstat \
