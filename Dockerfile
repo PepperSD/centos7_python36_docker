@@ -1,4 +1,4 @@
-FROM centos:centos7
+FROM centos:7.6.1810
 ENV container docker
 ENV PYTHON_VERSION "3.6.5"
 ENV SUDOFILE /etc/sudoers
@@ -54,7 +54,15 @@ RUN yum -y install \
            postgresql10 \
            postgresql10-server &&\
            curl -L https://toolbelt.treasuredata.com/sh/install-redhat-td-agent3.sh | sh &&\
-            yum clean all
+            yum clean all &&\
+            (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
+            rm -f /lib/systemd/system/multi-user.target.wants/*;\
+            rm -f /etc/systemd/system/*.wants/*;\
+            rm -f /lib/systemd/system/local-fs.target.wants/*; \
+            rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+            rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+            rm -f /lib/systemd/system/basic.target.wants/*;\
+            rm -f /lib/systemd/system/anaconda.target.wants/*;
 
 RUN pip3.6 install --upgrade pip setuptools ansible virtualenv circus tox &&\
     td-agent-gem install \
@@ -62,7 +70,12 @@ RUN pip3.6 install --upgrade pip setuptools ansible virtualenv circus tox &&\
                  fluent-plugin-elasticsearch \
                  fluent-plugin-filter_typecast \
                  fluent-plugin-filter-object-flatten \
-                 fluent-plugin-grep
+                 fluent-plugin-aliyun-odps \
+                 fluent-plugin-grep &&\
+    systemctl enable \
+              nginx \
+              rsyslog \
+              td-agent
 
 ## setup sshd and generate ssh-keys by init script
 RUN mkdir -p /var/run/sshd &&\
@@ -85,4 +98,5 @@ RUN chmod 600 /home/vagrant/.ssh/authorized_keys &&\
     chmod +x /home/vagrant/run.sh &&\
     /home/vagrant/run.sh
 VOLUME [ "/sys/fs/cgroup" ]
-ENTRYPOINT ["/usr/sbin/sshd", "-D"]
+ENTRYPOINT ["/usr/sbin/init"]
+CMD ["/usr/sbin/sshd", "-D"]

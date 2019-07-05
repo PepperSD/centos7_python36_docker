@@ -11,3 +11,5 @@ sed -i -e '/$ModLoad imjournal/s/^/#/' /etc/rsyslog.conf
 sed -i -e 's/$OmitLocalLogging on/$OmitLocalLogging off/' /etc/rsyslog.conf
 sed -i -e '/$IMJournalStateFile/s/^/#/' /etc/rsyslog.conf
 sed -i -e '/$SystemLogSocketName/s/^/#/' /etc/rsyslog.d/listen.conf
+sed -i -r 's/TD_AGENT_USER=td-agent/TD_AGENT_USER=root/' /etc/init.d/td-agent
+sed -i -r 's/TD_AGENT_GROUP=td-agent/TD_AGENT_GROUP=root/' /etc/init.d/td-agent
