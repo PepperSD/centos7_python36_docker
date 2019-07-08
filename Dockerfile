@@ -64,7 +64,7 @@ RUN yum -y install \
             rm -f /lib/systemd/system/basic.target.wants/*;\
             rm -f /lib/systemd/system/anaconda.target.wants/*;
 
-RUN pip3.6 install --upgrade pip setuptools ansible virtualenv circus tox &&\
+RUN pip3.6 install --upgrade pip setuptools ansible virtualenv circus tox passlib &&\
     td-agent-gem install \
                  fluent-plugin-dstat \
                  fluent-plugin-elasticsearch \
@@ -99,4 +99,4 @@ RUN chmod 600 /home/vagrant/.ssh/authorized_keys &&\
     /home/vagrant/run.sh
 VOLUME [ "/sys/fs/cgroup" ]
 ENTRYPOINT ["/usr/sbin/init"]
-CMD ["/usr/sbin/sshd", "-D"]
+CMD ["-D"]
