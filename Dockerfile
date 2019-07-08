@@ -98,4 +98,5 @@ RUN chmod 600 /home/vagrant/.ssh/authorized_keys &&\
     chmod +x /home/vagrant/run.sh &&\
     /home/vagrant/run.sh
 VOLUME [ "/sys/fs/cgroup" ]
-ENTRYPOINT ["/usr/sbin/init"]
+ENTRYPOINT ["/usr/sbin/sshd"]
+CMD ["-D"]
